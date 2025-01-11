@@ -4,21 +4,35 @@ import pandas as pd
 file_path = "data.csv"
 data = pd.read_csv(file_path)
 
-# Drop rows or columns with all missing values
-data = data.dropna(how='all', axis=1)  # Drop empty columns
-data = data.dropna(how='all', axis=0)  # Drop empty rows
+# Check for missing values
+print(data.isnull().sum())
 
-# Interpolate missing values
-data = data.interpolate(method='linear', axis=0)
+# Inspect the column names
+print(data.columns)
 
-# Save the cleaned data
-data.to_csv("cleaned_data.csv", index=False)
+# Melt the DataFrame to reshape it
+# Melt the DataFrame to reshape it
+tidy_data = data.melt(
+    id_vars=["RegionID", "SizeRank", "RegionName", "RegionType", "StateName"],
+    var_name="Date",
+    value_name="Price",
+)
 
-cleaned_data = pd.read_csv("cleaned_data.csv")
+# Convert the "Date" column to datetime
+tidy_data["Date"] = pd.to_datetime(tidy_data["Date"])
 
-print("Data preprocessing completed. Cleaned data saved to 'cleaned_house_prices.csv'.")
-print("Original Data - Missing Values Count")
-print(data.isna().sum())
+# Preview the reshaped data
+print(tidy_data.head())
 
-print("Cleaned Data - Missing Values Count")
-print(cleaned_data.isna().sum())
+
+# Check for missing prices
+missing_prices = tidy_data[tidy_data["Price"].isnull()]
+print(f"Number of missing prices: {len(missing_prices)}")
+
+# Interpolate missing values (group by region)
+tidy_data["Price"] = tidy_data.groupby(["RegionName", "StateName"])["Price"].transform(
+    lambda x: x.interpolate(method="linear")
+)
+
+# Verify if missing values are filled
+print(tidy_data.isnull().sum())

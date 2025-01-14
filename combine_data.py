@@ -10,7 +10,7 @@ data2 = data2[region_order]
 
 # Reset index of data2 and transpose so dates become columns
 data2 = data2.transpose()
-data2.columns = [str(date) for date in data2.columns]  # Ensure columns are strings
+data2.columns = [pd.to_datetime(col).strftime("%-m/%-d/%Y") for col in data2.columns]
 data2.reset_index(inplace=True)
 data2.rename(columns={"index": "RegionName"}, inplace=True)
 
